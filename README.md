@@ -1,36 +1,57 @@
-# Revolution 2.0 (GSCCC) — GitHub Pages + Supabase
+# Revolution 2.0 — GSCCC
 
-Static, multi-page-in-one HTML site (hash routing) designed for GitHub Pages, with form submissions stored in Supabase.
+An online cultural event portal for **Govt. Science College Cultural Club (GSCCC), Dhaka**.
 
-## Structure
+Built as a fast, single-site experience (hash routing) and deployed on **GitHub Pages** with registrations stored in **Supabase**.
 
-- `index.html`: site markup (routes: `#home`, `#segments`, `#register`, `#success`, `#control-panel`)
-- `styles.css`: styling
-- `script.js`: UI logic + Supabase integration
-- `supabase-config.js`: **you fill this** with your Supabase Project URL + anon key
-- `assets/`
-  - `assets.js`: defines `IMG_*` constants used by the UI
-  - `images/`: decoded images used by the UI
+## Live site
 
-## Supabase setup
+- **Website**: `https://shreshtho02.github.io/revolution2.0/`
 
-### 1) Create a project
+## What’s inside
 
-Create a Supabase project, then copy:
+- **Public portal**: Home, Segments, Registration, Success screen
+- **Admin Control Panel**: `/#control-panel`
+  - Login via **Supabase Auth**
+  - Review registrations, approve/reject, export CSV, delete rows
 
-- **Project URL**: Supabase Dashboard → Settings → API → Project URL
-- **Anon key**: Supabase Dashboard → Settings → API → Project API keys → `anon public`
+## Project structure
 
-Paste both into `supabase-config.js`:
+- `index.html` — markup + route container (`#home`, `#segments`, `#register`, `#success`, `#control-panel`)
+- `styles.css` — styling
+- `script.js` — UI logic + Supabase calls (insert/select/update/delete)
+- `supabase-config.js` — Supabase Project URL + anon key (public)
+- `assets/` — images + `assets.js` constants
+
+## Run locally
+
+From the project folder:
+
+```bash
+python -m http.server 5173
+```
+
+Then open `http://localhost:5173/`.
+
+## Supabase setup (production-ready basics)
+
+### 1) Create a Supabase project
+
+In Supabase Dashboard:
+
+- **Project URL**: Settings → API → Project URL
+- **Anon key**: Settings → API → Project API keys → `anon public`
+
+Paste them into `supabase-config.js`:
 
 ```js
 window.SUPABASE_URL = "https://YOURPROJECT.supabase.co";
 window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 ```
 
-### 2) Create the `registrations` table
+### 2) Create database table
 
-In Supabase SQL Editor, run:
+Run this in Supabase SQL Editor:
 
 ```sql
 create table if not exists public.registrations (
@@ -53,34 +74,35 @@ create table if not exists public.registrations (
 );
 ```
 
-Note: the frontend sends `classYear` and `segmentName`. Postgres folds unquoted identifiers to lowercase, so the columns are `classyear` and `segmentname`.
+### 3) RLS policies (public submit + authenticated admin)
 
-### 3) Enable Row Level Security (RLS) and policies
+This site is designed so:
 
-This project uses:
-
-- **Anon**: can insert new registrations
-- **Authenticated admin** (Supabase Auth user): can read/update/delete registrations (for the Control Panel)
+- **Anyone** can submit the registration form (public insert).
+- Only **authenticated** users (admins) can view/update/delete registrations in the Control Panel.
 
 Run:
 
 ```sql
 alter table public.registrations enable row level security;
 
--- Public form submission
+-- Public form submission (anyone visiting the site)
+drop policy if exists "public insert registrations" on public.registrations;
 create policy "public insert registrations"
 on public.registrations
 for insert
 to public
 with check (true);
 
--- Control panel (any authenticated user)
+-- Admin control panel (authenticated users)
+drop policy if exists "auth read registrations" on public.registrations;
 create policy "auth read registrations"
 on public.registrations
 for select
 to authenticated
 using (true);
 
+drop policy if exists "auth update registrations" on public.registrations;
 create policy "auth update registrations"
 on public.registrations
 for update
@@ -88,6 +110,7 @@ to authenticated
 using (true)
 with check (true);
 
+drop policy if exists "auth delete registrations" on public.registrations;
 create policy "auth delete registrations"
 on public.registrations
 for delete
@@ -95,47 +118,27 @@ to authenticated
 using (true);
 ```
 
-If you want only specific admins to have access, replace the `authenticated` policies with a role/claim-based approach (recommended for production).
+### 4) Create an admin user (Control Panel login)
 
-### 4) Create an admin user (for the Control Panel)
+Supabase Dashboard → Authentication → Users → **Add user** → set email + password.
 
-The Control Panel uses **Supabase Auth**.
+Then open:
 
-- Supabase Dashboard → Authentication → Users → **Add user**
-- Set an email + password
+- `/#control-panel`
 
-Then open the site at `#control-panel` and log in using that email/password.
-
-## Local development
-
-Any static server works. Examples:
-
-### Option A: Python
-
-```bash
-python -m http.server 5173
-```
-
-Open `http://localhost:5173/`.
-
-### Option B: Node
-
-```bash
-npx serve .
-```
+and sign in with that admin email/password.
 
 ## Deploy to GitHub Pages
 
-1. Create a GitHub repo and push this folder contents.
-2. GitHub repo → Settings → Pages
-3. **Build and deployment**:
-   - Source: Deploy from a branch
-   - Branch: `main` (or your branch), folder `/ (root)`
-4. Your site will be served from GitHub Pages and `index.html` will be the entry point.
+GitHub repo → Settings → Pages:
 
-## Notes / operational guidance
+- Source: **Deploy from a branch**
+- Branch: `main`
+- Folder: `/ (root)`
 
-- `supabase-config.js` is public on GitHub Pages. That’s expected: the **anon** key is meant to be public.
-- Do **not** put a Supabase service-role key into this repo.
-- For real production security, keep RLS strict and prefer role/claim-based admin policies.
+## Security notes (important)
+
+- `supabase-config.js` is **public**. The **anon** key is meant to be public.
+- Never commit a **service_role** key.
+- If you want stricter admin access than “any authenticated user”, use role/claim based RLS (recommended for large/public deployments).
 
