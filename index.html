@@ -1552,19 +1552,19 @@ async function submitForm() {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        mode: "no-cors",   // Apps Script requires no-cors
+          // Apps Script requires no-cors
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       // no-cors always returns opaque response; assume success if no throw
-      success = true;
+      success = res.ok;
       localRegs.push(payload);
       showToast("✅ Submitted to Google Sheets!", "success");
     } catch(err) {
       console.error("Sheets error:", err);
       showToast("⚠️ Could not reach server. Saved locally.", "error");
       localRegs.push(payload);
-      success = true; // still show success to user
+      success = res.ok; // still show success to user
     }
   } else {
     // ---- LOCAL (demo) mode ----
