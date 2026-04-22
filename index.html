@@ -1,0 +1,757 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ============================================================
+     REVOLUTION 2.0 — GSCCC National Cultural Event Portal
+     Built for: Govt. Science College Cultural Club, Dhaka
+     ============================================================ -->
+<title>Revolution 2.0 — GSCCC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script src="assets/assets.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<!-- ===== CURSOR (desktop only) ===== -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<!-- ===== CURSOR NAV HINT ===== -->
+<div id="cursor-nav-hint"></div>
+
+<!-- ===== PARTICLES ===== -->
+<canvas id="particles-canvas"></canvas>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-logo" data-page="home">
+    <img id="nl-rev" alt="Revolution" class="logo-rev">
+    <img id="nl-20"  alt="2.0"        class="logo-20">
+  </a>
+  <div class="nav-links">
+    <a href="#" class="nav-link active" data-page="home">Home</a>
+    <a href="#" class="nav-link"        data-page="segments">Segments</a>
+    <a href="#" class="nav-link"        data-page="register">Register</a>
+    <a href="#" class="nav-link"        data-page="contact">Contact</a>
+    <a href="#" class="nav-link nav-guide-icon" data-page="how-to-register" title="Registration Guide" aria-label="Registration Guide"><i class="fas fa-map-signs"></i></a>
+  </div>
+  <div class="nav-right">
+    <div class="social-icons">
+      <!-- CHANGE THIS: Update these social media links -->
+      <a href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener" class="social-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
+      <!-- CHANGE THIS: Update email address -->
+      <a href="mailto:gsc.culturalclub@gmail.com" class="social-icon" title="Email"><i class="fas fa-envelope"></i></a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== MOBILE MENU ===== -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#" class="m-link" data-page="home">Home</a>
+  <a href="#" class="m-link" data-page="segments">Segments</a>
+  <a href="#" class="m-link" data-page="register">Register</a>
+  <a href="#" class="m-link" data-page="contact">Contact</a>
+  <a href="#" class="m-link" data-page="how-to-register">Registration Guide</a>
+  <!-- CHANGE THIS: Update social links in mobile menu too -->
+  <div class="mobile-social">
+    <a href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+    <a href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener" class="social-icon"><i class="fab fa-instagram"></i></a>
+    <a href="mailto:gsc.culturalclub@gmail.com" class="social-icon"><i class="fas fa-envelope"></i></a>
+  </div>
+</div>
+
+<!-- ===== CLUB LOGO BUTTON (bottom-right) ===== -->
+<button class="club-logo-btn" id="club-logo-btn" aria-label="About GSCCC" title="About GSCCC">
+  <img id="club-logo-img" alt="GSCCC">
+  <span class="club-logo-pulse"></span>
+</button>
+<div class="club-popover" id="club-popover" role="dialog" aria-label="About GSCCC">
+  <div class="club-popover-inner">
+    <button class="club-popover-close" id="club-popover-close" aria-label="Close">✕</button>
+    <img class="club-popover-logo" id="club-popover-logo" alt="GSCCC">
+    <h3 class="club-popover-name">GSCCC</h3>
+    <p class="club-popover-full">Govt. Science College Cultural Club</p>
+    <p class="club-popover-desc">Established at Govt. Science College, Tejgaon, Dhaka — GSCCC has been the heartbeat of cultural expression, nurturing talent in arts, music, literature, and performance since its founding.</p>
+    <div class="club-popover-links">
+      <a href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener" class="club-pop-link"><i class="fab fa-facebook-f"></i> Facebook</a>
+      <a href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener" class="club-pop-link"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="mailto:gsc.culturalclub@gmail.com" class="club-pop-link"><i class="fas fa-envelope"></i> Email</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<div id="page-home" class="page active">
+
+<section class="hero">
+  <div class="hero-slider">
+    <div class="slides-container">
+      <!-- Slide 1 -->
+      <div class="hero-slide active">
+        <div class="hero-content">
+          <p class="eyebrow">GSCCC Presents</p>
+          <div class="hero-logos">
+            <img id="hs-rev" alt="Revolution" class="logo-rev">
+            <img id="hs-20"  alt="2.0"        class="logo-20">
+          </div>
+          <!-- CHANGE THIS: Update subtitle text -->
+          <p class="hero-sub"><strong>"The Legacy Lives On – From Resilience to Renaissance"</strong><br>Govt. Science College Cultural Club – GSCCC proudly presents <strong>Revolution 2.0</strong></p>
+          <div class="hero-btns">
+            <a href="#" class="btn btn-primary" data-page="register"><i class="fas fa-bolt"></i> Register Now</a>
+            <a href="#" class="btn btn-ghost"   data-page="segments">View Segments</a>
+          </div>
+        </div>
+      </div>
+      <!-- Slide 2 -->
+      <div class="hero-slide">
+        <div class="hero-content">
+          <p class="eyebrow">Our Journey</p>
+          <!-- CHANGE THIS: Slide title -->
+          <h2 class="slide-title">Voices of Change</h2>
+          <!-- CHANGE THIS: Slide description -->
+          <p class="slide-desc">The spirit of revolution lives in every heart that dares to dream, every voice that refuses to be silenced, and every action that shapes the future. We celebrate courage that triumphed over fear.</p>
+          <div class="hero-btns">
+            <a href="#" class="btn btn-primary" data-page="segments">Explore Events</a>
+            <a href="#countdown"                class="btn btn-ghost">Countdown</a>
+          </div>
+        </div>
+      </div>
+      <!-- Slide 3 -->
+      <div class="hero-slide">
+        <div class="hero-content">
+          <p class="eyebrow">Your Moment</p>
+          <h2 class="slide-title">Be Part of History</h2>
+          <p class="slide-desc">Whether you write with fire, capture moments through a lens, speak with conviction, sing from the heart, recite poetry, dance with freedom, or create art that inspires — your talent has a place here.</p>
+          <div class="hero-btns">
+            <a href="#" class="btn btn-primary" data-page="register"><i class="fas fa-pen-nib"></i> Register Today</a>
+            <a href="#" class="btn btn-ghost" data-page="contact">Contact Us</a>
+          </div>
+        </div>
+      </div>
+      <!-- Slide 4: How to Register -->
+      <div class="hero-slide">
+        <div class="hero-content">
+          <p class="eyebrow">Getting Started</p>
+          <h2 class="slide-title">How to Register</h2>
+          <p class="slide-desc">Not sure how to register? We've put together a simple step-by-step guide to walk you through the entire process — from choosing your segment to submitting payment.</p>
+          <div class="hero-btns">
+            <a href="#" class="btn btn-primary" data-page="how-to-register"><i class="fas fa-map-signs"></i> View Registration Guide</a>
+            <a href="#" class="btn btn-ghost" data-page="register"><i class="fas fa-bolt"></i> Register Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-dots" id="dots">
+    <div class="dot active" onclick="goToSlide(0)"></div>
+    <div class="dot"        onclick="goToSlide(1)"></div>
+    <div class="dot"        onclick="goToSlide(2)"></div>
+    <div class="dot"        onclick="goToSlide(3)"></div>
+  </div>
+  <p class="swipe-hint">Swipe to explore</p>
+</section>
+
+<!-- COUNTDOWN -->
+<section class="countdown-section" id="countdown">
+  <p class="countdown-label reveal">Event Begins In</p>
+  <div class="countdown-grid reveal">
+    <div class="c-unit"><span id="cd-d">00</span><small>Days</small></div>
+    <div class="c-sep">:</div>
+    <div class="c-unit"><span id="cd-h">00</span><small>Hours</small></div>
+    <div class="c-sep">:</div>
+    <div class="c-unit"><span id="cd-m">00</span><small>Minutes</small></div>
+    <div class="c-sep">:</div>
+    <div class="c-unit"><span id="cd-s">00</span><small>Seconds</small></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section">
+  <!-- CHANGE THIS: Update the about quote text -->
+  <div class="about-quote reveal">
+    The spirit of July — when voices refused to remain silent, bravery triumphed over fear, and the streets resounded with resolve — is what gives rise to <strong>Revolution 2.0</strong>. This is not just an event. It is a movement.
+  </div>
+</section>
+
+<h2 class="section-heading reveal">Our <span>Segments</span></h2>
+<div class="segments-grid" id="home-seg-grid">
+  <!-- Injected by JS -->
+</div>
+
+<footer class="footer" id="footer-home">
+  <p class="footer-title">Contact <span>Us</span></p>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">📧</div>
+      <h3>Official Email</h3>
+      <a href="mailto:gsc.culturalclub@gmail.com">gsc.culturalclub@gmail.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">🔗</div>
+      <h3>Official Pages</h3>
+      <p style="margin:0;line-height:1.7">
+        <a href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener">Facebook</a><br>
+        <a href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener">Instagram</a>
+      </p>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">📍</div>
+      <h3>Location</h3>
+      <p>Govt. Science College, Tejgaon, Dhaka-1215</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Govt. Science College Cultural Club (GSCCC) — Revolution 2.0. All Rights Reserved.</p>
+    <p class="footer-creator">Developed by <a href="https://www.facebook.com/shreshtho736" target="_blank" rel="noopener">Sudipta Saha Shreshtho</a> &mdash; Sub Organizing Secretary (GSCCC)</p>
+  </div>
+</footer>
+</div>
+<div id="page-segments" class="page">
+
+<div class="page-back-row">
+  <a href="#" class="page-back-btn" data-page="home"><i class="fas fa-arrow-left"></i>&nbsp; Home</a>
+</div>
+<div class="page-header">
+  <h1><span class="accent">All</span> Segments</h1>
+  <!-- CHANGE THIS: Update segments page subtitle -->
+  <p>Segments &amp; Their Essence — where expression becomes identity and creativity becomes a form of protest.</p>
+</div>
+<div class="seg-detail-grid" id="seg-detail-grid">
+  <!-- Injected by JS -->
+</div>
+
+<footer class="footer" id="footer-seg">
+  <p class="footer-title">Contact <span>Us</span></p>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">📧</div>
+      <h3>Official Email</h3>
+      <a href="mailto:gsc.culturalclub@gmail.com">gsc.culturalclub@gmail.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">🔗</div>
+      <h3>Official Pages</h3>
+      <p style="margin:0;line-height:1.7">
+        <a href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener">Facebook</a><br>
+        <a href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener">Instagram</a>
+      </p>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">📍</div>
+      <h3>Location</h3>
+      <p>Govt. Science College, Tejgaon, Dhaka-1215</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Govt. Science College Cultural Club (GSCCC) — Revolution 2.0. All Rights Reserved.</p>
+    <p class="footer-creator">Developed by <a href="https://www.facebook.com/shreshtho736" target="_blank" rel="noopener">Sudipta Saha Shreshtho</a> &mdash; Sub Organizing Secretary (GSCCC)</p>
+  </div>
+</footer>
+</div>
+<div id="page-register" class="page">
+
+<div class="page-back-row">
+  <a href="#" class="page-back-btn" data-page="home"><i class="fas fa-arrow-left"></i>&nbsp; Home</a>
+</div>
+<section class="register-section">
+  <div class="form-card">
+    <h1 class="form-title">Register <span>Now</span></h1>
+    <!-- CHANGE THIS: Registration form subtitle -->
+    <p class="form-subtitle">Fill in your details to secure your spot in Revolution 2.0</p>
+    <a href="#" class="htr-form-link" data-page="how-to-register"><i class="fas fa-question-circle"></i> How to register?</a>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Full Name <span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-name" placeholder="Your full name">
+        <span class="form-error" id="e-name"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address <span class="req">*</span></label>
+        <input type="email" class="form-input" id="f-email" placeholder="your@email.com">
+        <span class="form-error" id="e-email"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number <span class="req">*</span></label>
+        <input type="tel" class="form-input" id="f-phone" placeholder="+880 1X00 000000">
+        <span class="form-error" id="e-phone"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" class="form-input" id="f-dob">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Institution <span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-inst" placeholder="Your school / college">
+        <span class="form-error" id="e-inst"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Class / Year <span class="req">*</span></label>
+        <select class="form-select" id="f-class">
+          <option value="">Select class / year</option>
+          <option>Class 8</option>
+          <option>Class 9</option>
+          <option>Class 10</option>
+          <option>SSC Batch 26</option>
+          <option>HSC Batch 27</option>
+          <option>HSC Batch 26</option>
+        </select>
+        <span class="form-error" id="e-class"></span>
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-group full">
+        <label class="form-label">Choose Segment(s) <span class="req">*</span></label>
+        <div class="seg-checkbox-grid" id="seg-checkbox-grid">
+
+          <label class="seg-checkbox-item" data-seg="pen">
+            <input type="checkbox" value="pen">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-pen-nib"></i></div>
+            <span class="seg-cb-name">Ink &amp; Fire</span>
+            <span class="seg-cb-desc">Experience Writing</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="pic">
+            <input type="checkbox" value="pic">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-camera"></i></div>
+            <span class="seg-cb-name">Rebel's Lens</span>
+            <span class="seg-cb-desc">Photography</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="voice">
+            <input type="checkbox" value="voice">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-bullhorn"></i></div>
+            <span class="seg-cb-name">Voice of Revolution</span>
+            <span class="seg-cb-desc">Speech / Extempore</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="mic">
+            <input type="checkbox" value="mic">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-music"></i></div>
+            <span class="seg-cb-name">Bijoyer Shur</span>
+            <span class="seg-cb-desc">Singing — Cat A / B</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="poem">
+            <input type="checkbox" value="poem">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-scroll"></i></div>
+            <span class="seg-cb-name">Verses of Revolt</span>
+            <span class="seg-cb-desc">Poetry Recitation</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="dance">
+            <input type="checkbox" value="dance">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-shoe-prints"></i></div>
+            <span class="seg-cb-name">Step to Glory</span>
+            <span class="seg-cb-desc">Dance</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="art">
+            <input type="checkbox" value="art">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-palette"></i></div>
+            <span class="seg-cb-name">Strokes of Rebellion</span>
+            <span class="seg-cb-desc">Art</span>
+          </label>
+
+          <label class="seg-checkbox-item" data-seg="quiz">
+            <input type="checkbox" value="quiz">
+            <div class="seg-check-badge"><i class="fas fa-check"></i></div>
+            <div class="seg-card-icon"><i class="fas fa-brain"></i></div>
+            <span class="seg-cb-name">Knowledge Rebellion</span>
+            <span class="seg-cb-desc">Quiz</span>
+          </label>
+
+        </div>
+        <span class="form-error" id="e-seg"></span>
+      </div>
+      <!-- Category for mic -->
+      <div class="form-group full" id="cat-mic-wrap" style="display:none">
+        <label class="form-label">Singing Category <span class="req">*</span></label>
+        <select class="form-select" id="f-cat-mic">
+          <option value="">Select category</option>
+          <option value="A">Category A — Class 8 to 10</option>
+          <option value="B">Category B — Class 11 to 12, HSC Batch 26</option>
+        </select>
+        <span class="form-error" id="e-cat-mic"></span>
+      </div>
+
+      <!-- Total amount display -->
+      <div class="form-group full" id="total-amount-wrap" style="display:none">
+        <div class="total-amount-box">
+          <span class="total-amount-label">Total Amount to Pay via bKash</span>
+          <span class="total-amount-value" id="total-amount-value">৳0</span>
+        </div>
+      </div>
+      <!-- hidden field kept for legacy compat -->
+      <input type="hidden" id="f-seg">
+      <input type="hidden" id="f-cat">
+      <div class="form-group full">
+        <label class="form-label">CA Reference (Optional)</label>
+        <input type="text" class="form-input" id="f-ca-ref" placeholder="CA name or reference (if any)">
+        <small style="color:var(--text-dim);font-family:var(--font-b);text-transform:none;font-size:.8rem">If you were referred by a Cultural Ambassador (CA), please mention their name here</small>
+      </div>
+      <div class="form-divider"></div>
+      <div class="payment-info full">
+        <!-- CHANGE THIS: Update bKash number and fee amount -->
+        <h4>💳 Registration Fee &amp; Payment</h4>
+        <p>
+          Registration Fee: <strong>৳50</strong> per segment.<br>
+          Payment Method: <strong>bKash (Send Money)</strong><br>
+          bKash Number: <strong>01811221844</strong> (Personal)<br>
+          Reference/Remarks: <strong>Your full name</strong><br>
+          After payment, upload the <strong>transaction screenshot</strong> and enter your <strong>TrxID</strong> correctly.
+        </p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">bKash Transaction ID <span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-txn" placeholder="e.g. 8K7H2J4M9N">
+        <span class="form-error" id="e-txn"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">bKash Number Used <span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-bkash" placeholder="+880 1X00 000000">
+        <span class="form-error" id="e-bkash"></span>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Upload Transaction Screenshot (bKash) <span class="req">*</span></label>
+        <div class="file-field" id="ss-wrap">
+          <input type="file" class="file-input" id="f-ss" accept="image/*">
+          <button type="button" class="file-btn" onclick="triggerFilePicker('f-ss')">
+            <i class="fas fa-upload"></i> Choose Image
+          </button>
+          <div class="file-name" id="ss-name">No file selected</div>
+          <button type="button" class="file-clear" onclick="clearFilePicker('f-ss','ss-name')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <span class="form-error" id="e-ss"></span>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Additional Note</label>
+        <textarea class="form-textarea" id="f-note" placeholder="Anything you'd like us to know..."></textarea>
+      </div>
+      <div class="form-submit full">
+        <p>By registering you agree to our rules &amp; code of conduct.</p>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">
+          <div class="btn-spinner" id="btn-spin"></div>
+          <span class="btn-text"><i class="fas fa-paper-plane"></i> &nbsp;Submit Registration</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer" id="footer-reg">
+  <p class="footer-title">Contact <span>Us</span></p>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">📧</div>
+      <h3>Official Email</h3>
+      <a href="mailto:gsc.culturalclub@gmail.com">gsc.culturalclub@gmail.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">🔗</div>
+      <h3>Official Pages</h3>
+      <p style="margin:0;line-height:1.7">
+        <a href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener">Facebook</a><br>
+        <a href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener">Instagram</a>
+      </p>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">📍</div>
+      <h3>Location</h3>
+      <p>Govt. Science College, Tejgaon, Dhaka-1215</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Govt. Science College Cultural Club (GSCCC) — Revolution 2.0. All Rights Reserved.</p>
+    <p class="footer-creator">Developed by <a href="https://www.facebook.com/shreshtho736" target="_blank" rel="noopener">Sudipta Saha Shreshtho</a> &mdash; Sub Organizing Secretary (GSCCC)</p>
+  </div>
+</footer>
+</div>
+<div id="page-contact" class="page">
+
+<div class="page-back-row">
+  <a href="#" class="page-back-btn" data-page="home"><i class="fas fa-arrow-left"></i>&nbsp; Home</a>
+</div>
+<div class="page-header">
+  <h1><span class="accent">Contact</span> &amp; Queries</h1>
+  <p>Official contact information and segment query coordinators.</p>
+</div>
+
+<section class="contact-page">
+  <div class="contact-grid contact-grid-wide">
+    <div class="contact-card">
+      <div class="contact-icon">📧</div>
+      <h3>Official Email</h3>
+      <a href="mailto:gsc.culturalclub@gmail.com">gsc.culturalclub@gmail.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">🔗</div>
+      <h3>Official Pages</h3>
+      <div class="icon-row">
+        <a class="icon-pill" href="https://www.facebook.com/gsccc.official" target="_blank" rel="noopener" title="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a class="icon-pill" href="https://www.instagram.com/gsccc.official/" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+      </div>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">📍</div>
+      <h3>Location</h3>
+      <p>Govt. Science College, Tejgaon, Dhaka-1215</p>
+    </div>
+  </div>
+
+  <div class="query-grid">
+    <div class="query-card">
+      <div class="query-head">
+        <div>
+          <div class="query-name">Fza Saifee</div>
+          <div class="query-role">Sub-Executive of Administration</div>
+        </div>
+        <a class="query-fb" href="https://www.facebook.com/fza.saifee.99104" target="_blank" rel="noopener" title="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </div>
+      <div class="query-actions">
+        <a class="query-phone" href="tel:01533799104"><i class="fas fa-phone"></i> 01533799104</a>
+        <button class="query-copy" type="button" onclick="copyText('01533799104')"><i class="far fa-copy"></i> Copy</button>
+      </div>
+    </div>
+
+    <div class="query-card">
+      <div class="query-head">
+        <div>
+          <div class="query-name">Shrabon Fahad</div>
+          <div class="query-role">Sub General Secretary</div>
+        </div>
+        <a class="query-fb" href="https://www.facebook.com/profile.php?id=61573717827215" target="_blank" rel="noopener" title="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </div>
+      <div class="query-actions">
+        <a class="query-phone" href="tel:01878795927"><i class="fas fa-phone"></i> 01878795927</a>
+        <button class="query-copy" type="button" onclick="copyText('01878795927')"><i class="far fa-copy"></i> Copy</button>
+      </div>
+    </div>
+
+    <div class="query-card">
+      <div class="query-head">
+        <div>
+          <div class="query-name">Swagoto Gain</div>
+          <div class="query-role">Sub-Executive of Cultural Activities</div>
+        </div>
+        <a class="query-fb" href="https://www.facebook.com/boka.babu.397" target="_blank" rel="noopener" title="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </div>
+      <div class="query-actions">
+        <a class="query-phone" href="tel:01312855798"><i class="fas fa-phone"></i> 01312855798</a>
+        <button class="query-copy" type="button" onclick="copyText('01312855798')"><i class="far fa-copy"></i> Copy</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer" id="footer-contact">
+  <p class="footer-title">Govt. Science College Cultural Club – <span>GSCCC</span></p>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Govt. Science College Cultural Club (GSCCC) — Revolution 2.0. All Rights Reserved.</p>
+    <p class="footer-creator">Developed by <a href="https://www.facebook.com/shreshtho736" target="_blank" rel="noopener">Sudipta Saha Shreshtho</a> &mdash; Sub Organizing Secretary (GSCCC)</p>
+  </div>
+</footer>
+</div>
+<div id="page-success" class="page">
+
+<section class="success-section">
+  <div class="success-card">
+    <div class="success-icon"><i class="fas fa-check"></i></div>
+    <h2><span>Registration</span> Complete!</h2>
+    <p>Your registration for <strong id="ss-seg">Revolution 2.0</strong> has been received.<br>
+    We will contact you at <strong id="ss-email">your email</strong> within 48 hours.<br><br>
+    Save your Registration ID for future reference.</p>
+    <div class="reg-id-wrap">
+      <div class="reg-id" id="ss-id">REV2026-XXXX</div>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="copyRegId()">
+        <i class="far fa-copy"></i> Copy ID
+      </button>
+    </div>
+    <div class="success-btns">
+      <button class="btn btn-primary" onclick="openInvoice()">
+        <i class="fas fa-file-invoice"></i> View &amp; Download Invoice
+      </button>
+      <a href="#" class="btn btn-ghost" data-page="home">
+        <i class="fas fa-home"></i> Back to Home
+      </a>
+    </div>
+  </div>
+</section>
+
+</div>
+<div id="page-how-to-register" class="page">
+<div class="page-back-row">
+  <a href="#" class="page-back-btn" data-page="home"><i class="fas fa-arrow-left"></i>&nbsp; Home</a>
+</div>
+<section class="page-header htr-page-header">
+  <h1>How to <span class="accent">Register</span></h1>
+  <p>Follow these simple steps to complete your registration for Revolution 2.0.</p>
+</section>
+
+<section class="htr-section">
+  <div class="htr-steps">
+
+    <div class="htr-step reveal">
+      <div class="htr-step-num">01</div>
+      <div class="htr-step-body">
+        <h3>Fill in Your Details</h3>
+        <p>Go to the <a href="#" data-page="register" class="htr-link">Register</a> page. Enter your full name, email, phone number, date of birth, institution, and class/year. All fields marked with <span style="color:#cc1b1b">*</span> are required.</p>
+      </div>
+    </div>
+
+    <div class="htr-step reveal">
+      <div class="htr-step-num">02</div>
+      <div class="htr-step-body">
+        <h3>Choose Your Segment(s)</h3>
+        <p>Select one or more segments you want to participate in. Each segment costs <strong>৳50</strong>. If you choose <strong>Singing (Bijoyer Shur)</strong>, you must also select a Category — A (Class 8–10) or B (Class 11–12 / HSC Batch 26).</p>
+        <div class="htr-tip"><i class="fas fa-lightbulb"></i> The total amount you need to pay will be shown automatically based on how many segments you select.</div>
+      </div>
+    </div>
+
+    <div class="htr-step reveal">
+      <div class="htr-step-num">03</div>
+      <div class="htr-step-body">
+        <h3>Pay via bKash</h3>
+        <p>Send the total amount via <strong>bKash Send Money</strong> to <strong class="htr-bkash">01811221844</strong> (Personal). Use your <strong>full name</strong> as the reference/remarks.</p>
+        <div class="htr-tip"><i class="fas fa-info-circle"></i> Fee is ৳50 per segment. If you selected 3 segments, pay ৳150 in a single transaction.</div>
+      </div>
+    </div>
+
+    <div class="htr-step reveal">
+      <div class="htr-step-num">04</div>
+      <div class="htr-step-body">
+        <h3>Enter Transaction Details</h3>
+        <p>After paying, enter your <strong>bKash Transaction ID (TrxID)</strong> and the <strong>bKash number you paid from</strong> in the form.</p>
+      </div>
+    </div>
+
+    <div class="htr-step reveal">
+      <div class="htr-step-num">05</div>
+      <div class="htr-step-body">
+        <h3>Upload Payment Screenshot</h3>
+        <p>Take a screenshot of your bKash payment confirmation and upload it. This is mandatory for verification.</p>
+      </div>
+    </div>
+
+    <div class="htr-step reveal">
+      <div class="htr-step-num">06</div>
+      <div class="htr-step-body">
+        <h3>Submit &amp; Download Invoice</h3>
+        <p>Click <strong>Submit Registration</strong>. On success, click <strong>View &amp; Download Invoice</strong> to get your payment receipt. Save it for future reference — you may need it on event day.</p>
+        <div class="htr-tip"><i class="fas fa-check-circle"></i> You will receive a confirmation email within 48 hours of approval.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="htr-cta reveal">
+    <a href="#" class="btn btn-primary btn-lg" data-page="register"><i class="fas fa-bolt"></i> Register Now</a>
+    <a href="#" class="btn btn-ghost" data-page="segments">View Segments</a>
+  </div>
+</section>
+</div>
+
+<div id="page-control-panel" class="page">
+
+<div class="cp-login" id="cp-login-screen">
+  <div class="cp-login-card">
+    <div class="cp-icon">🛡️</div>
+    <h2>Control Panel</h2>
+    <p>Authorized personnel only</p>
+    <input type="text"     class="cp-input" id="cp-user" placeholder="Username" autocomplete="off">
+    <input type="password" class="cp-input" id="cp-pass" placeholder="Password" autocomplete="off">
+    <button class="btn btn-primary cp-login-btn" onclick="cpLogin()">Access Dashboard</button>
+    <p class="cp-error" id="cp-error">Invalid credentials. Try again.</p>
+  </div>
+</div>
+
+<div id="cp-dashboard" style="display:none">
+  <div class="cp-section">
+    <div class="cp-header">
+      <div>
+        <h1><span>Control</span> Panel</h1>
+        <div id="api-indicator"></div>
+      </div>
+      <div class="cp-header-btns">
+        <button class="btn btn-ghost btn-sm" onclick="loadRegistrations()"><i class="fas fa-sync"></i> Refresh</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportPhotos()"><i class="fas fa-images"></i> Export Photos</button>
+        <button class="btn btn-ghost btn-sm" onclick="addSamples()"><i class="fas fa-vial"></i> Add Samples</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAll()"><i class="fas fa-trash"></i> Clear All</button>
+        <button class="btn btn-ghost btn-sm" onclick="cpLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+    <div class="cp-bkash-bar">
+      <span class="cp-bkash-label"><i class="fas fa-mobile-alt"></i> bKash Receiving Number</span>
+      <span class="cp-bkash-number">01811221844</span>
+      <span class="cp-bkash-meta">Personal · Send Money · ৳50 per segment</span>
+    </div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="dist-block">
+      <h3>Segment Distribution</h3>
+      <div class="dist-bars" id="dist-bars"></div>
+    </div>
+    <div class="cp-controls">
+      <input type="text" class="cp-search" id="cp-search" placeholder="Search name, email, institution..." oninput="filterTable()">
+      <select class="cp-filter" id="f-segment" onchange="filterTable()">
+        <option value="">All Segments</option>
+        <option value="pen">Ink &amp; Fire</option>
+        <option value="pic">Rebel's Lens</option>
+        <option value="voice">Voice of Revolution</option>
+        <option value="mic">Bijoyer Shur</option>
+        <option value="poem">Verses of Revolt</option>
+        <option value="dance">Step to Glory</option>
+        <option value="art">Strokes of Rebellion</option>
+        <option value="quiz">Knowledge Rebellion</option>
+      </select>
+      <select class="cp-filter" id="f-status" onchange="filterTable()">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table><thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Email</th><th>Phone</th>
+          <th>Institution</th><th>Segment</th><th>TxnID</th><th>bKash No.</th>
+          <th>Date</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead><tbody id="cp-tbody"></tbody></table>
+    </div>
+    <p id="table-count" style="font-size:.8rem;color:var(--text-dim);text-align:right"></p>
+  </div>
+</div>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

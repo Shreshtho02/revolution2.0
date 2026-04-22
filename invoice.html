@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - Revolution 2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --page-width: 560px;
+            --page-min-height: 820px;  /* ← invoice height — reduce to shorten, increase to extend */
+            --primary-color: #cc1b1b;
+            --secondary-color: #c9a84c;
+            --text-white: #ffffff;
+            --text-medium: rgba(255, 255, 255, 0.7);
+            --text-light: rgba(255, 255, 255, 0.55);
+            --line: rgba(255, 255, 255, 0.18);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.32);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 24px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top, rgba(204, 27, 27, 0.2), transparent 35%),
+                linear-gradient(180deg, #141414 0%, #090909 100%);
+            color: var(--text-white);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 22px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .toolbar button:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #cc1b1b, #8b0000);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(204, 27, 27, 0.28);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        }
+
+        .status {
+            text-align: center;
+            min-height: 22px;
+            margin-bottom: 14px;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 14px;
+        }
+
+        .invoice-shell {
+            display: flex;
+            justify-content: center;
+        }
+
+        .invoice-container {
+            width: min(100%, var(--page-width));
+            min-height: var(--page-min-height);
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            background: #101010;
+            isolation: isolate;
+        }
+
+        .invoice-bg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .invoice-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .invoice-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(0, 0, 0, 0.34) 0%,
+                rgba(0, 0, 0, 0.27) 28%,
+                rgba(0, 0, 0, 0.38) 100%
+            );
+            z-index: 1;
+        }
+
+        /* ── Footer logo — position & size controls ─────────────────
+           POSITION : change margin-top to move it up/down
+           SIZE     : change width to make it bigger/smaller
+           OPACITY  : change opacity (0 = invisible, 1 = full)       */
+        .footer-logo {
+            margin-top: 18px;          /* ← vertical gap from text above */
+            display: flex;
+            justify-content: center;
+        }
+
+        .footer-logo img {
+            width: 72px;               /* ← logo width — increase to enlarge */
+            height: auto;
+            opacity: 0.55;             /* ← logo opacity */
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.08));
+        }
+
+        .invoice-content {
+            position: relative;
+            z-index: 3;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 34px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: var(--text-light);
+        }
+
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--line);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 11px;
+            font-size: 13px;
+            align-items: flex-start;
+        }
+
+        .label {
+            color: var(--text-medium);
+            font-family: "Courier New", monospace;
+            flex: 0 0 42%;
+        }
+
+        .value {
+            color: #fff;
+            font-family: "Courier New", monospace;
+            text-align: right;
+            flex: 1 1 auto;
+            word-break: break-word;
+        }
+
+        .highlight {
+            color: #ffb0b0;
+            font-weight: 700;
+        }
+
+        .footer {
+            margin-top: 36px;
+            padding-top: 18px;
+            border-top: 1px dashed var(--line);
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .loading-cover {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(7, 7, 7, 0.72);
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-cover.visible {
+            display: flex;
+        }
+
+        .loading-pill {
+            padding: 12px 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 14px;
+            }
+
+            .invoice-content {
+                padding: 28px 20px;
+            }
+
+            .row {
+                gap: 10px;
+            }
+
+            .label {
+                flex-basis: 44%;
+            }
+        }
+
+        @media print {
+            @page {
+                size: auto;
+                margin: 0;
+            }
+
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .toolbar,
+            .status {
+                display: none !important;
+            }
+
+            .invoice-container {
+                width: 100%;
+                max-width: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .invoice-container,
+            .invoice-container * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button type="button" class="btn-primary" id="download-btn">Download Invoice</button>
+        <button type="button" class="btn-secondary" id="print-btn">Print</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="invoice-shell">
+        <div class="invoice-container" id="invoice">
+            <div class="invoice-bg">
+                <img id="invoice-bg-img" alt="Invoice background">
+            </div>
+            <div class="invoice-overlay"></div>
+            <div class="invoice-content">
+                <div class="header">
+                    <div class="title">PAYMENT RECEIPT</div>
+                    <div class="subtitle">REVOLUTION 2.0 - GSCCC NATIONAL CULTURAL EVENT</div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Bill Information</div>
+                    <div class="row">
+                        <span class="label">Organization Name</span>
+                        <span class="value">Government Science College Cultural Club</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Event</span>
+                        <span class="value">Revolution 2.0</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Segment(s)</span>
+                        <span class="value" id="segmentname">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Registration ID</span>
+                        <span class="value" id="reg-id">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Segments Count</span>
+                        <span class="value" id="seg-count">1</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Fee per Segment</span>
+                        <span class="value">BDT 50.00</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Total Bill Amount</span>
+                        <span class="value highlight" id="bill-amount">BDT 50.00</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Participant Details</div>
+                    <div class="row">
+                        <span class="label">Name</span>
+                        <span class="value" id="name">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Phone</span>
+                        <span class="value" id="phone">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Email</span>
+                        <span class="value" id="email">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Institution</span>
+                        <span class="value" id="institution">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Class / Year</span>
+                        <span class="value" id="classyear">N/A</span>
+                    </div>
+                    <div class="row" id="ca-row" style="display:none;">
+                        <span class="label">CA Reference</span>
+                        <span class="value" id="ca-ref">N/A</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Payment Information</div>
+                    <div class="row">
+                        <span class="label">bKash Number</span>
+                        <span class="value" id="bkash">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Payment Date</span>
+                        <span class="value" id="payment-date">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Transaction ID</span>
+                        <span class="value" id="txn">N/A</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Paid To</span>
+                        <span class="value">01811221844</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Method</span>
+                        <span class="value">bKash Send Money</span>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="footer-text">This receipt has been generated electronically.</div>
+                    <div class="footer-text">No signature required. © 2026 GSCCC Cultural Club.</div>
+                    <div class="footer-logo">
+                        <img id="watermark-img" alt="GSCCC logo">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="loading-cover" id="loading-cover">
+        <div class="loading-pill">Preparing invoice image...</div>
+    </div>
+
+    <script>
+        function getRegistrationData() {
+            try {
+                const stored = localStorage.getItem("currentRegistration");
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+            } catch (error) {
+                console.error("Could not read stored registration:", error);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryData = {};
+
+            for (const [key, value] of urlParams.entries()) {
+                if (key !== "autodownload") {
+                    queryData[key] = value;
+                }
+            }
+
+            return queryData;
+        }
+
+        function setStatus(message, isError) {
+            const el = document.getElementById("status");
+            el.textContent = message || "";
+            el.style.color = isError ? "#ffb3b3" : "rgba(255,255,255,0.78)";
+        }
+
+        function setText(id, value, fallback) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || fallback || "N/A";
+        }
+
+        function getAssetUrl(path) {
+            return new URL(path, window.location.href).href;
+        }
+
+        function waitForImage(img) {
+            return new Promise((resolve, reject) => {
+                if (img.complete && img.naturalWidth > 0) {
+                    resolve();
+                    return;
+                }
+
+                img.addEventListener("load", () => resolve(), { once: true });
+                img.addEventListener("error", () => reject(new Error("Failed to load " + img.src)), { once: true });
+            });
+        }
+
+        async function prepareAssets() {
+            const bgImg = document.getElementById("invoice-bg-img");
+            const watermarkImg = document.getElementById("watermark-img");
+
+            bgImg.src = getAssetUrl("assets/images/img_invoice.jpeg");
+            watermarkImg.src = getAssetUrl("assets/images/img_gsccc.png");
+            bgImg.crossOrigin = "anonymous";
+            watermarkImg.crossOrigin = "anonymous";
+
+            await Promise.all([waitForImage(bgImg), waitForImage(watermarkImg)]);
+
+            if (document.fonts && document.fonts.ready) {
+                await document.fonts.ready;
+            }
+        }
+
+        function populateInvoice() {
+            const data = getRegistrationData();
+
+            setText("segmentname", data.segmentname, "N/A");
+            setText("name", data.name, "N/A");
+            setText("phone", data.phone, "N/A");
+            setText("email", data.email, "N/A");
+            setText("institution", data.institution, "N/A");
+            setText("classyear", data.classyear, "N/A");
+            setText("bkash", data.bkash, "N/A");
+            setText("txn", data.txn, "N/A");
+
+            const regId = data.id ? data.id.slice(-10).toUpperCase() : "N/A";
+            setText("reg-id", regId, "N/A");
+
+            // Multi-segment: count and total
+            const segsArr = data._segments || (data.segment ? data.segment.split(",") : []);
+            const segCount = segsArr.length || 1;
+            const totalAmt = data._totalAmount || (segCount * 50);
+            setText("seg-count", segCount);
+            setText("bill-amount", "BDT " + totalAmt.toFixed(2));
+
+            if (data.ca_ref) {
+                document.getElementById("ca-row").style.display = "flex";
+                setText("ca-ref", data.ca_ref, "N/A");
+            }
+
+            const paymentDate = (data.timestamp || data.payment_date)
+                ? new Date(data.timestamp || data.payment_date).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                })
+                : new Date().toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                });
+            setText("payment-date", paymentDate, "N/A");
+
+            return data;
+        }
+
+        async function downloadInvoiceImage() {
+            const loading = document.getElementById("loading-cover");
+            const data = getRegistrationData();
+
+            try {
+                loading.classList.add("visible");
+                setStatus("Generating invoice image...");
+
+                // Assets already loaded by initInvoice(); hide overlay before capture
+                loading.classList.remove("visible");
+
+                const canvas = await html2canvas(document.getElementById("invoice"), {
+                    scale: 4,  /* ← download resolution multiplier — 4 = very sharp, lower for smaller file size */
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: null,
+                    imageTimeout: 0,
+                    logging: false
+                });
+
+                const link = document.createElement("a");
+                const suffix = (data.id || Date.now().toString()).toString().slice(-8);
+                link.download = `Invoice_Revolution2_${suffix}.png`;
+                link.href = canvas.toDataURL("image/png");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setStatus("Invoice downloaded successfully.");
+            } catch (error) {
+                console.error("Invoice download failed:", error);
+                setStatus("Invoice download failed. You can still use Print as a fallback.", true);
+            } finally {
+                loading.classList.remove("visible");
+            }
+        }
+
+        async function initInvoice() {
+            populateInvoice();
+
+            try {
+                await prepareAssets();
+                setStatus("");
+            } catch (error) {
+                console.error("Invoice assets failed to load:", error);
+                setStatus("Background or watermark image failed to load.", true);
+            }
+
+            // No autodownload — user clicks the Download button
+        }
+
+        document.getElementById("download-btn").addEventListener("click", downloadInvoiceImage);
+        document.getElementById("print-btn").addEventListener("click", () => window.print());
+
+        initInvoice();
+    </script>
+</body>
+</html>
