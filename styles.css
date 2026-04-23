@@ -1,5 +1,5 @@
 ﻿*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden}
 
 :root{
   --bg:#080808;--bg-2:#0f0f0f;--bg-3:#1a1a1a;
@@ -304,7 +304,7 @@ button{border:none;background:none;font-family:inherit}
 .mobile-social .social-icon:hover{transform:none !important}
 
 /* ====== PAGES ====== */
-.page{display:none;min-height:100vh;position:relative;z-index:1}
+.page{display:none;min-height:100vh;position:relative;z-index:1;overflow-x:hidden;max-width:100vw}
 .page.active{display:block}
 .page-enter{animation:pageIn .45s var(--ease) both}
 @keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -508,6 +508,7 @@ button{border:none;background:none;font-family:inherit}
 }
 .seg-card:hover h3{color:var(--accent-light)}
 .seg-card p{font-size:.92rem;color:var(--text-muted);line-height:1.7;flex-grow:1;position:relative;z-index:1}
+.seg-card p .bn,.seg-card-body p .bn{color:var(--accent)}
 
 /* ====== SEGMENTS DETAIL PAGE ====== */
 .page-header{
@@ -560,11 +561,13 @@ button{border:none;background:none;font-family:inherit}
 .register-section{
   padding:.8rem 3rem 6rem;
   max-width:740px;margin:0 auto;position:relative;z-index:1;
+  box-sizing:border-box;width:100%;
 }
 .form-card{
   background:var(--glass);backdrop-filter:blur(20px);
   border:1px solid var(--border);border-radius:var(--r-lg);
   padding:3rem;position:relative;overflow:hidden;
+  box-sizing:border-box;width:100%;max-width:100%;
 }
 .form-card::before{
   content:"";position:absolute;top:0;left:0;right:0;height:3px;
@@ -578,6 +581,7 @@ button{border:none;background:none;font-family:inherit}
 .form-subtitle{color:var(--text-muted);margin-bottom:.6rem;font-size:1rem}
 
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.form-grid>*{min-width:0}
 .form-group{display:flex;flex-direction:column;gap:.45rem}
 .form-group.full{grid-column:1/-1}
 .form-label{font-family:var(--font-h);font-size:.82rem;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase}
@@ -641,6 +645,7 @@ button{border:none;background:none;font-family:inherit}
 .payment-info{
   background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.18);
   border-radius:var(--r);padding:1.2rem 1.5rem;grid-column:1/-1;
+  box-sizing:border-box;width:100%;word-break:break-word;
 }
 .payment-info h4{font-family:var(--font-h);color:var(--gold);letter-spacing:1px;margin-bottom:.5rem}
 .payment-info p{font-size:.9rem;color:var(--text-muted);line-height:1.7}
@@ -1048,6 +1053,9 @@ tr:last-child td{border-bottom:none}
               box-shadow   .22s var(--ease);
   user-select: none;
   gap: .45rem;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Hide native checkbox — keep in DOM for form logic */
@@ -1327,4 +1335,101 @@ tr:last-child td{border-bottom:none}
 }
 @media (max-width: 600px) {
   .cp-bkash-meta { margin-left: 0; width: 100%; }
+}
+/* ================================================================
+   MERGED FROM responsive-fix.css — additional breakpoints
+   not covered in the original styles.css
+================================================================ */
+
+/* Register section: safe-area aware padding on all phones */
+@media (max-width: 900px) {
+  .register-section {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .seg-checkbox-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: .45rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* Collapse to 2 columns at 680px — fills gap between 900px and 600px */
+@media (max-width: 680px) {
+  .seg-checkbox-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: .55rem;
+  }
+}
+
+/* Single-column form grid at 520px */
+@media (max-width: 520px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: .85rem;
+  }
+  .form-group.full {
+    grid-column: 1;
+  }
+  .form-submit {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-submit .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* File upload row wraps cleanly at 480px */
+@media (max-width: 480px) {
+  .file-field {
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .file-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .file-name {
+    flex-basis: 100%;
+    order: 3;
+  }
+  .file-clear {
+    margin-left: auto;
+  }
+}
+
+/* Total amount box stacks at 400px */
+@media (max-width: 400px) {
+  .total-amount-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .4rem;
+  }
+}
+
+.quiz-offline-notice {
+  display: none;
+  align-items: center;
+  gap: .45rem;
+  padding: .45rem .85rem;
+  background: rgba(255, 180, 0, .07);
+  border: 1px solid rgba(255, 180, 0, .22);
+  border-radius: 6px;
+  font-size: .76rem;
+  color: rgba(255, 180, 0, .8);
+  font-family: var(--font-m);
+  letter-spacing: .15px;
+  margin-top: .4rem;
+  line-height: 1.4;
+}
+.quiz-offline-notice.visible {
+  display: flex;
+}
+.quiz-offline-notice i {
+  color: #ffb400;
+  font-size: .72rem;
+  flex-shrink: 0;
 }

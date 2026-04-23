@@ -44,14 +44,14 @@ const SEGS = {
 // CHANGE THIS: Segment descriptions shown on the Segments page
 // Edit the desc field for each segment
 const SEG_DETAIL = {
-  pen:   { short:"“Where the pen meets the heartbeat of struggle – লিখিত শব্দে জীবিত হয় সাহস ও সংগ্রামের গল্প।”<br>Capture stories that echo bravery, sacrifice, and the untold journeys of heroes.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
-  pic:   { short:"“Through the eyes of today, moments of courage are immortalized – আজকের চোখে, সংগ্রামের মুহূর্তগুলো চিরস্থায়ী হয়ে ওঠে।”<br>Show the revolution through powerful frames that reflect courage, equality, and expression.", rules:["All submissions will be online.","Photos must be submitted via form first, then posted in the official Facebook group.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description."] },
-  voice: { short:"“Unshackled voices, bearing the fire of change – মুক্ত কণ্ঠে, যাদের ভাষা প্রেরণা প্রজ্বলন করে।”<br>Speak spontaneously, ignite minds, and let your voice become a beacon of courage.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
-  mic:   { short:"“Songs that weave the melody of hope – প্রত্যয়ের সুরে বোনা গান যা হৃদয় স্পর্শ করে।”<br>Perform classics, original pieces, or patriotic songs that celebrate triumph, bravery, and inspiration.", rules:["Category A: Class 8–10.","Category B: Class 11–12 & HSC Batch 26.","All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted."] },
-  poem:  { short:"“Silent verses that speak louder than words – নিস্তব্ধ কবিতা, যা অন্তরের গভীরে আলো জ্বালায়।”<br>Recite poems that reflect struggle, resilience, and the light of hope.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
-  dance: { short:"“Every step tells a story of freedom – নৃত্যের প্রতিটি পদক্ষেপে স্বাধীনতার গল্প।”<br>Move with rhythm, creativity, and energy that celebrates courage.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
-  art:   { short:"“Where imagination confronts reality – কল্পনার রঙে, সংগ্রামের চিত্র ফুটিয়ে তোলা।”<br>Create artworks that reflect thought, struggle, and the power of expression.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
-  quiz:  { short:"“Knowledge is courage, every answer a declaration – জ্ঞানই সাহস, প্রতিটি উত্তর হলো প্রেরণা।”<br>Test your awareness and understanding of culture, history, and revolutionary ideas.", rules:["Quiz is Offline.","Segment Fee: 50 BDT (per segment)."] },
+  pen:   { short:"“Where the pen meets the heartbeat of struggle – <span class=\"bn\">লিখিত শব্দে জীবিত হয় সাহস ও সংগ্রামের গল্প।</span>”<br>Capture stories that echo bravery, sacrifice, and the untold journeys of heroes.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
+  pic:   { short:"“Through the eyes of today, moments of courage are immortalized – <span class=\"bn\">আজকের চোখে, সংগ্রামের মুহূর্তগুলো চিরস্থায়ী হয়ে ওঠে।</span>”<br>Show the revolution through powerful frames that reflect courage, equality, and expression.", rules:["All submissions will be online.","Photos must be submitted via form first, then posted in the official Facebook group.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description."] },
+  voice: { short:"“Unshackled voices, bearing the fire of change – <span class=\"bn\">মুক্ত কণ্ঠে, যাদের ভাষা প্রেরণা প্রজ্বলন করে।</span>”<br>Speak spontaneously, ignite minds, and let your voice become a beacon of courage.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
+  mic:   { short:"“Songs that weave the melody of hope – <span class=\"bn\">প্রত্যয়ের সুরে বোনা গান যা হৃদয় স্পর্শ করে।</span>”<br>Perform classics, original pieces, or patriotic songs that celebrate triumph, bravery, and inspiration.", rules:["Category A: Class 8–10.","Category B: Class 11–12 & HSC Batch 26.","All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted."] },
+  poem:  { short:"“Silent verses that speak louder than words – <span class=\"bn\">নিস্তব্ধ কবিতা, যা অন্তরের গভীরে আলো জ্বালায়।</span>”<br>Recite poems that reflect struggle, resilience, and the light of hope.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
+  dance: { short:"“Every step tells a story of freedom – <span class=\"bn\">নৃত্যের প্রতিটি পদক্ষেপে স্বাধীনতার গল্প।</span>”<br>Move with rhythm, creativity, and energy that celebrates courage.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
+  art:   { short:"“Where imagination confronts reality – <span class=\"bn\">কল্পনার রঙে, সংগ্রামের চিত্র ফুটিয়ে তোলা।</span>”<br>Create artworks that reflect thought, struggle, and the power of expression.", rules:["All submissions will be online.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
+  quiz:  { short:"“Knowledge is courage, every answer a declaration – <span class=\"bn\">জ্ঞানই সাহস, প্রতিটি উত্তর হলো প্রেরণা।</span>”<br>Test your awareness and understanding of culture, history, and revolutionary ideas.", rules:["Quiz is Offline.","Segment Fee: 50 BDT (per segment)."] },
 };
 
 const SEG_IMGS = { pen:IMG_PEN, pic:IMG_PIC, voice:IMG_VOICE, mic:IMG_MIC, poem:IMG_POEM, dance:IMG_DANCE, art:IMG_ART, quiz:IMG_QUIZ };
@@ -190,7 +190,7 @@ if (!IS_TOUCH) {
       kind: k < 0.6 ? 0 : k < 0.85 ? 1 : 2
     };
   }
-  const pts = Array.from({ length: 60 }, mkPt);
+  const pts = Array.from({ length: 150 }, mkPt);
 
   function drawPt(p) {
     const col = p.gold ? "#C9A84C" : "#CC1B1B";
@@ -477,6 +477,9 @@ function updateSegmentUI() {
   // Clear error
   const errEl = document.getElementById("e-seg");
   if (errEl && count > 0) errEl.textContent = "";
+
+  const qn = document.getElementById("quiz-offline-notice");
+  if (qn) qn.classList.toggle("visible", selected.includes("quiz"));
 }
 
 // Legacy stub — kept so any old references don't crash
