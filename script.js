@@ -452,15 +452,53 @@ function getSelectedSegments() {
   return Array.from(checks).map(c => c.value);
 }
 
+// Maps class/year values → singing category
+function getAutoMicCategory(classVal) {
+  if (!classVal) return null;
+  const catA = ["Class 8", "Class 9", "Class 10", "SSC Batch 26"];
+  const catB = ["HSC Batch 27", "HSC Batch 26"];
+  if (catA.includes(classVal)) return "A";
+  if (catB.includes(classVal)) return "B";
+  return null;
+}
+
 function updateSegmentUI() {
   const selected = getSelectedSegments();
   const count = selected.length;
+  const hasMic = selected.includes("mic");
 
-  // Show/hide category selects
-  const hasMic  = selected.includes("mic");
-  const micWrap  = document.getElementById("cat-mic-wrap");
-  if (micWrap)  micWrap.style.display  = hasMic  ? "block" : "none";
-  if (!hasMic  && document.getElementById("f-cat-mic"))  document.getElementById("f-cat-mic").value  = "";
+  // ── Singing category auto-detection ──────────────────────────
+  const micWrap = document.getElementById("cat-mic-wrap");
+  if (micWrap) {
+    if (hasMic) {
+      const classVal = document.getElementById("f-class").value;
+      const autocat  = getAutoMicCategory(classVal);
+      const micHidden = document.getElementById("f-cat-mic");
+
+      // Update the displayed chip text
+      const chipEl   = document.getElementById("mic-cat-chip");
+      const warnEl   = document.getElementById("mic-cat-warn");
+      if (autocat) {
+        if (micHidden) micHidden.value = autocat;
+        if (chipEl) {
+          chipEl.style.display = "flex";
+          chipEl.querySelector(".mic-cat-letter").textContent = autocat;
+          chipEl.querySelector(".mic-cat-label").textContent  =
+            autocat === "A" ? "Category A — Class 8 to 10" : "Category B — Class 11 to 12 / HSC Batch 26";
+        }
+        if (warnEl) warnEl.style.display = "none";
+      } else {
+        if (micHidden) micHidden.value = "";
+        if (chipEl)  chipEl.style.display  = "none";
+        if (warnEl)  warnEl.style.display  = "flex";
+      }
+      micWrap.style.display = "block";
+    } else {
+      micWrap.style.display = "none";
+      const micHidden = document.getElementById("f-cat-mic");
+      if (micHidden) micHidden.value = "";
+    }
+  }
 
   // Total amount
   const totalWrap = document.getElementById("total-amount-wrap");
@@ -474,7 +512,7 @@ function updateSegmentUI() {
     el.classList.toggle("selected", cb.checked);
   });
 
-  // Clear error
+  // Clear segment error
   const errEl = document.getElementById("e-seg");
   if (errEl && count > 0) errEl.textContent = "";
 
@@ -490,6 +528,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#seg-checkbox-grid input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", updateSegmentUI);
   });
+  // Re-evaluate mic category whenever class changes
+  const classEl = document.getElementById("f-class");
+  if (classEl) classEl.addEventListener("change", updateSegmentUI);
 });
 // Also bind immediately for cases where DOM is already ready
 (function bindSegCheckboxes() {
@@ -498,6 +539,9 @@ document.addEventListener("DOMContentLoaded", () => {
   grid.querySelectorAll("input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", updateSegmentUI);
   });
+  // Re-evaluate mic category whenever class changes
+  const classEl = document.getElementById("f-class");
+  if (classEl) classEl.addEventListener("change", updateSegmentUI);
 })();
 
 // ================================================================
@@ -613,17 +657,47 @@ function openInvoice() {
 // Legacy alias
 function downloadInvoice() { openInvoice(); }
 
-// Images stored as base64 directly in DB — no storage bucket needed
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("Failed to read file: " + file.name));
-    reader.readAsDataURL(file);
+// ── Supabase Storage uploads ──────────────────────────────────
+// Compresses image client-side before upload to keep file sizes small.
+function compressImage(file, maxWidthPx, qualityVal) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale  = Math.min(1, maxWidthPx / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(blob || file), "image/jpeg", qualityVal);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
   });
 }
-async function uploadPaymentScreenshot(sb, file, regId) { return await fileToBase64(file); }
-async function uploadParticipantPhoto(sb, file, regId)  { return await fileToBase64(file); }
+
+async function uploadPaymentScreenshot(sb, file, regId) {
+  const compressed = await compressImage(file, 1400, 0.78);
+  const path = `screenshots/${regId}.jpg`;
+  const { error } = await sb.storage
+    .from("payment-screenshots")
+    .upload(path, compressed, { upsert: true, contentType: "image/jpeg" });
+  if (error) throw error;
+  const { data: urlData } = sb.storage.from("payment-screenshots").getPublicUrl(path);
+  return urlData.publicUrl;
+}
+
+async function uploadParticipantPhoto(sb, file, regId) {
+  const compressed = await compressImage(file, 1200, 0.80);
+  const path = `photos/${regId}.jpg`;
+  const { error } = await sb.storage
+    .from("payment-screenshots")
+    .upload(path, compressed, { upsert: true, contentType: "image/jpeg" });
+  if (error) throw error;
+  const { data: urlData } = sb.storage.from("payment-screenshots").getPublicUrl(path);
+  return urlData.publicUrl;
+}
 
 // ── Receipt-style invoice (bKash receipt inspired) ───────────
 function loadImg(src) {
@@ -637,7 +711,7 @@ function loadImg(src) {
 
 async function generateInvoice(registrationData) {
   // Canvas setup - CUSTOMIZE: Change SCALE for quality, W_L/H_L for dimensions
-  const SCALE = 2; // 2 = High DPI, 1 = Standard
+  const SCALE = 1; // 2 = High DPI, 1 = Standard
   const W_L = 560, H_L = 1050; // Canvas dimensions (width x height)
   const canvas = document.createElement('canvas');
   canvas.width  = W_L * SCALE;
@@ -648,8 +722,8 @@ async function generateInvoice(registrationData) {
   // Load background image and club logo watermark
   // CUSTOMIZE: Change paths if your images are in different folders
   const [bgImg, logoGsccc] = await Promise.all([
-    loadImg('assets/images/img_invoice.jpeg'), // Background image from Canva
-    loadImg('assets/images/img_gsccc.png'), // Club logo for watermark
+    loadImg('assets/images/img_invoice.webp'), // Background image from Canva
+    loadImg('assets/images/img_gsccc.webp'), // Club logo for watermark
   ]);
 
   // Draw background image - CUSTOMIZE: Adjust overlay opacity for text readability
@@ -791,57 +865,16 @@ async function generateInvoice(registrationData) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Receipt_Revolution2_${(registrationData.id || 'Unknown').slice(-8)}.png`;
+      a.download = `Receipt_Revolution2_${(registrationData.id || 'Unknown').slice(-8)}.jpg`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       resolve();
-    }, 'image/png');
+    }, 'image/jpeg', 0.85);
   });
 }
 
-
-// ── Canvas helpers ────────────────────────────────────────────
-function rr(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
-  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
-  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
-  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
-}
-function rrFill(ctx, x, y, w, h, rtl, rbr) {
-  const r1=rtl||0, r2=rbr||0;
-  ctx.beginPath();
-  ctx.moveTo(x+r1,y); ctx.lineTo(x+w-r1,y); ctx.arcTo(x+w,y,x+w,y+r1,r1);
-  ctx.lineTo(x+w,y+h-r2); ctx.arcTo(x+w,y+h,x+w-r2,y+h,r2);
-  ctx.lineTo(x+r2,y+h); ctx.arcTo(x,y+h,x,y+h-r2,r2);
-  ctx.lineTo(x,y+r1); ctx.arcTo(x,y,x+r1,y,r1); ctx.closePath();
-}
-function hdiv(ctx, x1, y, x2) {
-  const g = ctx.createLinearGradient(x1,0,x2,0);
-  g.addColorStop(0,'transparent'); g.addColorStop(0.5,'rgba(255,255,255,0.07)'); g.addColorStop(1,'transparent');
-  ctx.strokeStyle=g; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
-}
-function secLabel(ctx, x, y, text) {
-  ctx.fillStyle='#CC1B1B'; ctx.font='bold 10px Arial'; ctx.textAlign='left';
-  ctx.fillText(text, x, y);
-  ctx.fillStyle='rgba(204,27,27,0.4)'; ctx.fillRect(x, y+3, 24, 2);
-}
-function fld(ctx, x, y, label, value) {
-  ctx.fillStyle='rgba(136,136,128,0.85)'; ctx.font='11px Arial'; ctx.textAlign='left';
-  ctx.fillText(label+':', x, y);
-  ctx.fillStyle='#F0EDE8'; ctx.font='13px Arial';
-  ctx.fillText(String(value), x+130, y);
-}
-function drawPhotoPlaceholder(ctx, x, y, w, h) {
-  ctx.fillStyle='rgba(255,255,255,0.04)';
-  ctx.save(); rr(ctx,x,y,w,h,8); ctx.clip(); ctx.fillRect(x,y,w,h); ctx.restore();
-  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1; rr(ctx,x,y,w,h,8); ctx.stroke();
-  ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.font='11px Arial'; ctx.textAlign='center';
-  ctx.fillText('No Photo', x+w/2, y+h/2+4);
-}
 
 async function submitForm() {
 
@@ -871,16 +904,11 @@ async function submitForm() {
   if (hasMicSel)  ok = ok && validate("f-cat-mic",  "e-cat-mic",  v => v === "A" || v === "B", "Please select a category for Singing");
   if (!ok) return;
 
-  const segVal  = selectedSegs[0]; // primary segment (first selected)
-  const regId   = genRegId();
-  const catMic  = (document.getElementById("f-cat-mic")  && document.getElementById("f-cat-mic").value)  || "";
-  const catVal  = catMic || "";
+  const regId  = genRegId();
+  const catMic = (document.getElementById("f-cat-mic") && document.getElementById("f-cat-mic").value) || "";
   const ssFile  = document.getElementById("f-ss").files[0];
   // IMPORTANT: Supabase/PostgREST column names must match the table schema exactly.
-  // Our DB uses lowercase columns: classyear, segmentname.
   const noteRaw = (document.getElementById("f-note").value.trim() || "");
-  const noteParts = [];
-  // categories are captured in segSummary below
 
   // Spinner on
   const btn = document.getElementById("submit-btn");
@@ -889,27 +917,31 @@ async function submitForm() {
   let screenshotUrl = "";
   try {
     screenshotUrl = await uploadPaymentScreenshot(sb, ssFile, regId);
-    noteParts.push(`Payment Screenshot: ${screenshotUrl}`);
   } catch (e) {
     console.error("Screenshot upload failed:", e);
     const ssErr = e?.message || e?.error_description || JSON.stringify(e) || "unknown";
-    showToast("❌ Screenshot failed: " + ssErr, "error");
+    showToast("❌ Screenshot upload failed: " + ssErr, "error");
     btn.classList.remove("submitting"); btn.disabled = false;
     return;
   }
 
-  const noteFinal = [noteParts.join(" | "), noteRaw].filter(Boolean).join("\n");
+  // note stores the screenshot URL + any participant note
+  const noteFinal = [
+    screenshotUrl ? `Screenshot: ${screenshotUrl}` : "",
+    noteRaw
+  ].filter(Boolean).join("\n");
 
-  // Build segment + category summary for note
+  // Build segment + category summary
   const segSummary = selectedSegs.map(s => {
     let label = SEGS[s].name;
-    if (s === "mic"  && catMic)  label += " (Cat " + catMic  + ")";
+    if (s === "mic" && catMic) label += " (Cat " + catMic + ")";
     return label;
   }).join(", ");
   const totalAmount = selectedSegs.length * 50;
 
-  // Only DB-schema columns go here — any extra keys cause PostgREST to
-  // reject the entire INSERT with a "column does not exist" error.
+  // Only columns that exist in the DB schema go here.
+  // Do NOT include photo_base64 / screenshot_base64 / photo — legacy columns,
+  // left in DB for history but we no longer write to them.
   const dbPayload = {
     id:          regId,
     name:        document.getElementById("f-name").value.trim(),
@@ -1245,13 +1277,25 @@ async function clearAll() {
 // ================================================================
 //  PHOTO VIEWER + DOWNLOAD HELPERS
 // ================================================================
+
+// Extract the screenshot public URL stored in the note field
+function extractScreenshotUrl(note) {
+  if (!note) return null;
+  const match = note.match(/Screenshot:\s*(https?:\/\/\S+)/);
+  return match ? match[1] : null;
+}
+
 function viewPhotos(id) {
   const r = cpRegs.find(x => x.id === id);
   if (!r) return;
   const old = document.getElementById("photo-modal");
   if (old) old.remove();
-  const hasP = (r.photo||"").startsWith("data:image");
-  const hasS = false; // screenshot no longer stored as separate column
+
+  const ssUrl = extractScreenshotUrl(r.note || "");
+  const hasS  = !!ssUrl;
+  // Legacy base64 photo column (no longer written, kept for old records)
+  const hasP  = (r.photo||"").startsWith("data:image");
+
   const modal = document.createElement("div");
   modal.id = "photo-modal";
   modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(14px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:2rem;";
@@ -1260,17 +1304,20 @@ function viewPhotos(id) {
       <button onclick="document.getElementById('photo-modal').remove()" style="position:absolute;top:1rem;right:1rem;background:rgba(204,27,27,.15);border:1px solid rgba(204,27,27,.3);color:#ff3333;width:36px;height:36px;border-radius:8px;font-size:1.1rem;cursor:pointer;">✕</button>
       <div style="font-family:sans-serif;font-size:1.25rem;font-weight:700;color:#F0EDE8;margin-bottom:.2rem;">${r.name}</div>
       <div style="font-size:.82rem;color:#888880;margin-bottom:1.4rem;">${r.id} · ${r.segmentname} · ${r.institution||""}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;">
-        <div>
-          <div style="font-size:.7rem;color:#CC1B1B;letter-spacing:2px;margin-bottom:.5rem;">PARTICIPANT PHOTO</div>
-          ${hasP ? `<img src="${r.photo}" style="width:100%;border-radius:10px;border:1px solid rgba(201,168,76,.3);">` : `<div style="height:160px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#444;">No photo</div>`}
-          ${hasP ? `<button onclick="downloadBase64('${r.photo}','photo_${r.id}.jpg')" style="margin-top:.6rem;width:100%;padding:.6rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:8px;cursor:pointer;">⬇ Download Photo</button>` : ""}
-        </div>
+      <div style="display:grid;grid-template-columns:${hasP ? "1fr 1fr" : "1fr"};gap:1.4rem;">
         <div>
           <div style="font-size:.7rem;color:#CC1B1B;letter-spacing:2px;margin-bottom:.5rem;">PAYMENT SCREENSHOT</div>
-          ${hasS ? `<img src="" style="width:100%;border-radius:10px;border:1px solid rgba(201,168,76,.3);">` : `<div style="height:160px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#444;">No screenshot</div>`}
-          ${hasS ? `<button onclick="downloadBase64('','screenshot_${r.id}.jpg')" style="margin-top:.6rem;width:100%;padding:.6rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:8px;cursor:pointer;">⬇ Download Screenshot</button>` : ""}
+          ${hasS
+            ? `<img src="${ssUrl}" style="width:100%;border-radius:10px;border:1px solid rgba(201,168,76,.3);" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+               <div style="display:none;height:120px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:10px;align-items:center;justify-content:center;color:#666;font-size:.85rem;">Image failed to load</div>
+               <a href="${ssUrl}" target="_blank" rel="noopener" style="display:block;margin-top:.6rem;width:100%;padding:.6rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:8px;cursor:pointer;text-align:center;text-decoration:none;">⬇ Open / Download Screenshot</a>`
+            : `<div style="height:160px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#444;">No screenshot</div>`}
         </div>
+        ${hasP ? `<div>
+          <div style="font-size:.7rem;color:#CC1B1B;letter-spacing:2px;margin-bottom:.5rem;">PARTICIPANT PHOTO (legacy)</div>
+          <img src="${r.photo}" style="width:100%;border-radius:10px;border:1px solid rgba(201,168,76,.3);">
+          <button onclick="downloadBase64('${r.photo}','photo_${r.id}.jpg')" style="margin-top:.6rem;width:100%;padding:.6rem;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#C9A84C;border-radius:8px;cursor:pointer;">⬇ Download Photo</button>
+        </div>` : ""}
       </div>
       <div style="margin-top:1.4rem;display:flex;gap:.8rem;">
         <button onclick="downloadInvoiceForReg('${r.id}')" style="flex:1;padding:.75rem;background:linear-gradient(135deg,#CC1B1B,#8B0000);border:1px solid rgba(204,27,27,.5);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;letter-spacing:1px;">⬇ Download Invoice</button>
@@ -1296,17 +1343,18 @@ async function downloadInvoiceForReg(id) {
 }
 
 function exportPhotos() {
-  const list = cpRegs.filter(r => (r.photo||"").startsWith("data:image"));
-  if (!list.length) { showToast("No photos to export.", "error"); return; }
-  let i = 0;
-  function next() {
-    if (i >= list.length) { showToast("✅ Downloaded " + list.length + " photos.", "success"); return; }
-    const r = list[i++];
-    const safeName = (r.name||"").replace(/[^a-zA-Z0-9]/g,"_");
-    downloadBase64(r.photo, "photo_" + safeName + "_" + r.id.slice(-6) + ".jpg");
-    setTimeout(next, 380);
-  }
-  next();
+  // Collect all registrations that have a screenshot URL in their note
+  const list = cpRegs.filter(r => extractScreenshotUrl(r.note || ""));
+  if (!list.length) { showToast("No screenshots to export.", "error"); return; }
+  // Open each screenshot URL in a new tab — Storage files can't be batch-downloaded
+  // via JS fetch due to cross-origin limits, so we open them for manual save
+  list.forEach((r, i) => {
+    setTimeout(() => {
+      const url = extractScreenshotUrl(r.note || "");
+      if (url) window.open(url, "_blank", "noopener");
+    }, i * 400);
+  });
+  showToast(`✅ Opened ${list.length} screenshot(s) in new tabs.`, "success");
 }
 
 function exportCSV() {

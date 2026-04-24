@@ -180,8 +180,8 @@
 <!-- ABOUT -->
 <section class="about-section">
   <!-- CHANGE THIS: Update the about quote text -->
-  <div class="about-quote reveal">
-    The spirit of July — when voices refused to remain silent, bravery triumphed over fear, and the streets resounded with resolve — is what gives rise to <strong>Revolution 2.0</strong>. This is not just an event. It is a movement.
+  <div class="about-quote reveal">  
+    Revolution 2.0 is the awakening of a generation that redefined courage. We transform the echoes of resistance into a celebration of art and identity. Join us as we bridge the gap between resilience and a new renaissance.
   </div>
 </section>
 
@@ -385,14 +385,25 @@
         </p>
         <span class="form-error" id="e-seg"></span>
       </div>
-      <!-- Category for mic -->
+      <!-- Category for mic — auto-detected from class field -->
       <div class="form-group full" id="cat-mic-wrap" style="display:none">
         <label class="form-label">Singing Category <span class="req">*</span></label>
-        <select class="form-select" id="f-cat-mic">
-          <option value="">Select category</option>
-          <option value="A">Category A — Class 8 to 10</option>
-          <option value="B">Category B — Class 11 to 12, HSC Batch 26</option>
-        </select>
+        <!-- Hidden input carries the value for form submission -->
+        <input type="hidden" id="f-cat-mic">
+        <!-- Auto-detected category chip -->
+        <div class="mic-cat-chip" id="mic-cat-chip" style="display:none">
+          <div class="mic-cat-badge"><span class="mic-cat-letter">A</span></div>
+          <div class="mic-cat-info">
+            <span class="mic-cat-label">Category A — Class 8 to 10</span>
+            <span class="mic-cat-sub">Auto-detected from your class selection</span>
+          </div>
+          <i class="fas fa-check-circle mic-cat-ok"></i>
+        </div>
+        <!-- Warning shown when no class is selected yet -->
+        <div class="mic-cat-warn" id="mic-cat-warn" style="display:none">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span>Please select your <strong>Class / Year</strong> above first — your singing category will be assigned automatically.</span>
+        </div>
         <span class="form-error" id="e-cat-mic"></span>
       </div>
 

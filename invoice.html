@@ -460,8 +460,8 @@
             const bgImg = document.getElementById("invoice-bg-img");
             const watermarkImg = document.getElementById("watermark-img");
 
-            bgImg.src = getAssetUrl("assets/images/img_invoice.jpeg");
-            watermarkImg.src = getAssetUrl("assets/images/img_gsccc.png");
+            bgImg.src = getAssetUrl("assets/images/img_invoice.webp");
+            watermarkImg.src = getAssetUrl("assets/images/img_gsccc.webp");
             bgImg.crossOrigin = "anonymous";
             watermarkImg.crossOrigin = "anonymous";
 
@@ -527,7 +527,7 @@
                 loading.classList.remove("visible");
 
                 const canvas = await html2canvas(document.getElementById("invoice"), {
-                    scale: 4,  /* ← download resolution multiplier — 4 = very sharp, lower for smaller file size */
+                    scale: 2,  /* ← download resolution multiplier — 2 = sharp, lower for smaller file */
                     useCORS: true,
                     allowTaint: false,
                     backgroundColor: null,
@@ -537,8 +537,8 @@
 
                 const link = document.createElement("a");
                 const suffix = (data.id || Date.now().toString()).toString().slice(-8);
-                link.download = `Invoice_Revolution2_${suffix}.png`;
-                link.href = canvas.toDataURL("image/png");
+                link.download = `Invoice_Revolution2_${suffix}.jpg`;
+                link.href = canvas.toDataURL("image/jpeg", 0.82);
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
