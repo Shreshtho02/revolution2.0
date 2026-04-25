@@ -647,8 +647,30 @@ function openInvoice() {
     return;
   }
   try {
-    localStorage.setItem("currentRegistration", JSON.stringify(window.currentRegistration));
-    window.open("invoice.html", "_blank");
+    // Always encode data into URL params — this survives cross-browser opens
+    // (Messenger in-app browser → Chrome, etc.) where localStorage is isolated.
+    // localStorage is also set as a fallback for browsers that truncate long URLs.
+    const d = window.currentRegistration;
+    const params = new URLSearchParams({
+      id:          d.id          || "",
+      name:        d.name        || "",
+      email:       d.email       || "",
+      phone:       d.phone       || "",
+      institution: d.institution || "",
+      classyear:   d.classyear   || "",
+      segmentname: d.segmentname || "",
+      category:    d.category    || "",
+      bkash:       d.bkash       || "",
+      txn:         d.txn         || "",
+      timestamp:   d.timestamp   || "",
+      ca_ref:      d.ca_ref      || "",
+      _totalAmount: String(d._totalAmount || ""),
+      _segments:    (d._segments || []).join(","),
+    });
+    try {
+      localStorage.setItem("currentRegistration", JSON.stringify(d));
+    } catch(_) { /* quota exceeded in sandboxed browser — URL params are the fallback */ }
+    window.open("invoice.html?" + params.toString(), "_blank");
   } catch (error) {
     console.error("Invoice open error:", error);
     showToast("❌ Failed to open invoice. Please try again.", "error");
@@ -682,7 +704,7 @@ async function uploadPaymentScreenshot(sb, file, regId) {
   const path = `screenshots/${regId}.jpg`;
   const { error } = await sb.storage
     .from("payment-screenshots")
-    .upload(path, compressed, { upsert: true, contentType: "image/jpeg" });
+    .upload(path, compressed, { upsert: false, contentType: "image/jpeg" });
   if (error) throw error;
   const { data: urlData } = sb.storage.from("payment-screenshots").getPublicUrl(path);
   return urlData.publicUrl;
@@ -693,7 +715,7 @@ async function uploadParticipantPhoto(sb, file, regId) {
   const path = `photos/${regId}.jpg`;
   const { error } = await sb.storage
     .from("payment-screenshots")
-    .upload(path, compressed, { upsert: true, contentType: "image/jpeg" });
+    .upload(path, compressed, { upsert: false, contentType: "image/jpeg" });
   if (error) throw error;
   const { data: urlData } = sb.storage.from("payment-screenshots").getPublicUrl(path);
   return urlData.publicUrl;
@@ -952,6 +974,7 @@ async function submitForm() {
     classyear:   (document.getElementById("f-class").value || null),
     segment:     selectedSegs.join(","),
     segmentname: segSummary,
+    category:    (catMic || null),
     ca_ref:      (document.getElementById("f-ca-ref").value.trim() || null),
     txn:         document.getElementById("f-txn").value.trim(),
     bkash:       (document.getElementById("f-bkash").value.trim() || null),
@@ -988,11 +1011,17 @@ async function submitForm() {
     if (document.getElementById("f-cat-mic"))  document.getElementById("f-cat-mic").value  = "";
   } catch (err) {
     console.error("Supabase insert error:", err, { dbPayload });
+    const errMsg = err?.message || err?.details || err?.hint || JSON.stringify(err) || "unknown";
+    const errCode = err?.code || err?.status || "";
 
-    if (err && (err.code === "42501" || err.status === 403)) {
-      showToast("❌ Submissions are blocked (database RLS policy). Ask the admin to allow public INSERT.", "error");
+    if (errCode === "42501" || err?.status === 403) {
+      showToast("❌ RLS blocked. Code: " + errCode + " — " + errMsg, "error");
+    } else if (errCode === "23502") {
+      showToast("❌ Missing required field: " + errMsg, "error");
+    } else if (errCode === "42703") {
+      showToast("❌ Unknown column in payload: " + errMsg, "error");
     } else {
-      showToast("❌ Submission failed. Please try again in a moment.", "error");
+      showToast("❌ Insert failed [" + errCode + "]: " + errMsg, "error");
     }
     btn.classList.remove("submitting"); btn.disabled = false;
   } finally {
@@ -1104,7 +1133,7 @@ async function loadRegistrations() {
     async function fetchRegs() {
       const fetchPromise = sb
         .from("registrations")
-        .select("id,name,email,phone,institution,classyear,segment,segmentname,ca_ref,txn,bkash,note,status,timestamp")
+        .select("id,name,email,phone,institution,classyear,segment,segmentname,category,ca_ref,txn,bkash,note,status,timestamp")
         .order("id", { ascending: false })
         .limit(200);
       const timeoutPromise = new Promise((_,reject) => setTimeout(() => reject(new Error("timeout")), 25000));
@@ -1180,7 +1209,7 @@ function filterTable() {
   );
   const tbody = document.getElementById("cp-tbody");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><i class="fas fa-inbox"></i><p>No registrations match filters</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><i class="fas fa-inbox"></i><p>No registrations match filters</p></div></td></tr>`;
     document.getElementById("table-count").textContent = "";
     return;
   }
@@ -1196,6 +1225,7 @@ function filterTable() {
       <td>${r.phone}</td>
       <td>${r.institution||""}</td>
       <td style="color:var(--accent-light)">${r.segmentname}</td>
+      <td style="font-family:var(--font-m);font-size:.78rem;color:var(--gold)">${r.category ? "Cat " + r.category : "—"}</td>
       <td style="font-family:var(--font-m);font-size:.78rem">${r.txn}</td>
       <td style="font-family:var(--font-m);font-size:.78rem">${r.bkash||"—"}</td>
       <td style="font-size:.8rem">${new Date(r.timestamp).toLocaleDateString("en-BD",{day:"2-digit",month:"short",year:"2-digit"})}</td>
@@ -1359,7 +1389,7 @@ function exportPhotos() {
 
 function exportCSV() {
   if (!cpRegs.length) { showToast("No registrations to export."); return; }
-  const hdrs = ["ID","Name","Email","Phone","Institution","Class","Segment","Photo","CA Reference","TxnID","bKash","Note","Date","Status"];
+  const hdrs = ["ID","Name","Email","Phone","Institution","Class","Segment","Category","CA Reference","TxnID","bKash","Note","Date","Status"];
   const rows = cpRegs.map(r => [
     r.id,
     r.name,
@@ -1368,7 +1398,7 @@ function exportCSV() {
     r.institution || "",
     r.classyear || "",
     r.segmentname,
-    r.photo || "",
+    r.category || "",
     r.ca_ref || "",
     r.txn,
     r.bkash || "",
@@ -1399,7 +1429,7 @@ function addSamples() {
   samples.forEach((s,i) => {
     cpRegs.push({
       id: "REV2026-"+(++regCounter),
-      ...s, segmentname: SEGS[s.segment].name, ca_ref:"", bkash:"", note:"",
+      ...s, segmentname: SEGS[s.segment].name, category: s.segment === "mic" ? "A" : null, ca_ref:"", bkash:"", note:"",
       timestamp: new Date(Date.now()-Math.random()*86400000*7).toISOString(),
       status: statuses[i],
     });

@@ -320,6 +320,10 @@
                         <span class="label">Segment(s)</span>
                         <span class="value" id="segmentname">N/A</span>
                     </div>
+                    <div class="row" id="category-row" style="display:none;">
+                        <span class="label">Singing Category</span>
+                        <span class="value" id="inv-category">N/A</span>
+                    </div>
                     <div class="row">
                         <span class="label">Registration ID</span>
                         <span class="value" id="reg-id">N/A</span>
@@ -408,25 +412,31 @@
 
     <script>
         function getRegistrationData() {
+            // URL params are the primary source — they survive cross-browser opens
+            // (e.g. Messenger in-app browser → Chrome) where localStorage is isolated.
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasUrlData = urlParams.has("id") && urlParams.get("id") !== "";
+
+            if (hasUrlData) {
+                const d = {};
+                for (const [key, value] of urlParams.entries()) {
+                    d[key] = value;
+                }
+                // Reconstruct array fields
+                if (d._segments) d._segments = d._segments.split(",").filter(Boolean);
+                if (d._totalAmount) d._totalAmount = parseFloat(d._totalAmount) || 0;
+                return d;
+            }
+
+            // Fallback: localStorage (same browser, no cross-browser switch)
             try {
                 const stored = localStorage.getItem("currentRegistration");
-                if (stored) {
-                    return JSON.parse(stored);
-                }
+                if (stored) return JSON.parse(stored);
             } catch (error) {
                 console.error("Could not read stored registration:", error);
             }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const queryData = {};
-
-            for (const [key, value] of urlParams.entries()) {
-                if (key !== "autodownload") {
-                    queryData[key] = value;
-                }
-            }
-
-            return queryData;
+            return {};
         }
 
         function setStatus(message, isError) {
@@ -486,6 +496,16 @@
 
             const regId = data.id ? data.id.slice(-10).toUpperCase() : "N/A";
             setText("reg-id", regId, "N/A");
+
+            // Singing category
+            if (data.category) {
+                const catRow = document.getElementById("category-row");
+                if (catRow) catRow.style.display = "flex";
+                const catLabel = data.category === "A"
+                    ? "Category A — Class 8 to 10"
+                    : "Category B — Class 11 to 12 / HSC Batch 26";
+                setText("inv-category", catLabel, "N/A");
+            }
 
             // Multi-segment: count and total
             const segsArr = data._segments || (data.segment ? data.segment.split(",") : []);
