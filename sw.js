@@ -1,4 +1,4 @@
-var CACHE = "revolution-v3";
+var CACHE = "revolution-v4";
 var URLS = [
   "/revolution2.0/",
   "/revolution2.0/styles.css",

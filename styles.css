@@ -460,6 +460,17 @@ button{border:none;background:none;font-family:inherit}
 .c-unit span{font-family:var(--font-m);font-size:2.8rem;font-weight:700;color:var(--accent);line-height:1}
 .c-unit small{font-size:.72rem;color:var(--text-muted);margin-top:.5rem;letter-spacing:2px;text-transform:uppercase}
 .c-sep{font-size:2.2rem;color:var(--accent);opacity:.4}
+.countdown-static{
+  display:inline-flex;align-items:center;gap:.9rem;
+  background:var(--glass-md);backdrop-filter:blur(16px);
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:1.2rem 2.2rem;
+}
+.countdown-static i{color:var(--accent);font-size:1.3rem}
+.countdown-static span{
+  font-family:var(--font-m);font-size:1.5rem;font-weight:700;
+  color:var(--text);letter-spacing:1px;
+}
 
 /* ====== ABOUT ====== */
 .about-section{padding:4rem 3rem;max-width:980px;margin:0 auto;position:relative;z-index:1}
@@ -1263,6 +1274,46 @@ tr:last-child td{border-bottom:none}
   transform: scale(1) rotate(0deg);
 }
 
+/* Closed segments — kept visible, but visually inert */
+.seg-checkbox-item.disabled {
+  cursor: not-allowed;
+  opacity: .45;
+  filter: grayscale(.6);
+}
+.seg-checkbox-item.disabled:hover {
+  border-color: var(--border);
+  background: rgba(255,255,255,.025);
+  transform: none;
+  box-shadow: none;
+}
+.seg-checkbox-item.disabled:hover .seg-card-icon {
+  background: rgba(204,27,27,.08);
+  border-color: rgba(204,27,27,.18);
+  box-shadow: none;
+  transform: none;
+}
+.seg-checkbox-item.disabled::after {
+  content: "Unavailable";
+  position: absolute;
+  bottom: .5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-m);
+  font-size: .56rem;
+  letter-spacing: .5px;
+  color: var(--text-dim);
+  background: rgba(0,0,0,.35);
+  padding: .1rem .45rem;
+  border-radius: 999px;
+}
+
+/* Closed-registration badge used in place of the Register button */
+.btn-disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .total-amount-box {
   display: flex;
   justify-content: space-between;
@@ -1556,7 +1607,8 @@ tr:last-child td{border-bottom:none}
   text-align: left;
   animation: chipIn .3s var(--ease) both;
 }
-.submission-notice .fab {
+.submission-notice .fab,
+.submission-notice > i {
   font-size: 1.1rem;
   color: #4f92ff;
   margin-top: 2px;
@@ -1576,6 +1628,11 @@ tr:last-child td{border-bottom:none}
   line-height: 1.6;
   margin: 0;
 }
+.submission-notice p a {
+  color: #4f92ff;
+  text-decoration: none;
+}
+.submission-notice p a:hover { text-decoration: underline; }
 
 /* ================================================================
    PREFERS-REDUCED-MOTION

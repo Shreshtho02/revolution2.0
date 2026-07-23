@@ -16,9 +16,7 @@ function getSupabase() {
   return window.__sb;
 }
 
-// CHANGE THIS: Event date for countdown (YYYY, Month-1, Day, Hour, Min, Sec)
-// Month is 0-indexed: 6 = July
-const EVENT_DATE = new Date(2026, 6, 1, 0, 0, 0);
+// Prize Giving Ceremony date is shown as static text in index.html (#countdown section)
 
 // ================================================================
 //  SEGMENT DATA
@@ -44,7 +42,7 @@ const SEG_DETAIL = {
   poem:  { short:"“Silent verses that speak louder than words – <span class=\"bn\">নিস্তব্ধ কবিতা, যা অন্তরের গভীরে আলো জ্বালায়।</span>”<br>Recite poems that reflect struggle, resilience, and the light of hope.", rules:["All submissions will be online via the official Facebook Submission Group.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
   dance: { short:"“Every step tells a story of freedom – <span class=\"bn\">নৃত্যের প্রতিটি পদক্ষেপে স্বাধীনতার গল্প।</span>”<br>Move with rhythm, creativity, and energy that celebrates courage.", rules:["All submissions will be online via the official Facebook Submission Group.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
   art:   { short:"“Where imagination confronts reality – <span class=\"bn\">কল্পনার রঙে, সংগ্রামের চিত্র ফুটিয়ে তোলা।</span>”<br>Create artworks that reflect thought, struggle, and the power of expression.", rules:["All submissions will be online via the official Facebook Submission Group.","Any AI-generated / AI-assisted or third-party assisted work will not be accepted.","Use the submission format & hashtags provided in the event description.","Segment Fee: 50 BDT (per segment)."] },
-  quiz:  { short:"“Knowledge is courage, every answer a declaration – <span class=\"bn\">জ্ঞানই সাহস, প্রতিটি উত্তর হলো প্রেরণা।</span>”<br>Test your awareness and understanding of culture, history, and revolutionary ideas.", rules:["Quiz is Offline — venue and date will be announced on our Facebook page.","Segment Fee: 50 BDT (per segment)."] },
+  quiz:  { short:"“Knowledge is courage, every answer a declaration – <span class=\"bn\">জ্ঞানই সাহস, প্রতিটি উত্তর হলো প্রেরণা।</span>”<br>Test your awareness and understanding of culture, history, and revolutionary ideas.", rules:["Quiz is Offline — venue details will be announced on our Facebook page.","Prize Giving Ceremony: 5th August, 2026.","Segment Fee: 50 BDT (per segment)."] },
 };
 
 const SEG_IMGS = { pen:IMG_PEN, pic:IMG_PIC, voice:IMG_VOICE, mic:IMG_MIC, poem:IMG_POEM, dance:IMG_DANCE, art:IMG_ART, quiz:IMG_QUIZ };
@@ -395,7 +393,7 @@ document.addEventListener("click", e => {
     setTimeout(() => {
       // Multi-segment: check the corresponding checkbox for the pre-selected segment
       const cb = document.querySelector(`#seg-checkbox-grid input[value="${seg}"]`);
-      if (cb) { cb.checked = true; updateSegmentUI(); }
+      if (cb && !cb.disabled) { cb.checked = true; updateSegmentUI(); }
     }, 80);
   }
 });
@@ -427,16 +425,8 @@ document.addEventListener("keydown", e => { if(e.key==="ArrowRight") goToSlide(s
 sTimer = setTimeout(() => goToSlide(1,"right"), 5200);
 
 // ================================================================
-//  COUNTDOWN
+//  PRIZE GIVING CEREMONY — static date, no live countdown needed
 // ================================================================
-function tick() {
-  const diff = Math.max(0, EVENT_DATE - new Date());
-  document.getElementById("cd-d").textContent = String(Math.floor(diff/86400000)).padStart(2,"0");
-  document.getElementById("cd-h").textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,"0");
-  document.getElementById("cd-m").textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,"0");
-  document.getElementById("cd-s").textContent = String(Math.floor((diff%60000)/1000)).padStart(2,"0");
-}
-tick(); setInterval(tick, 1000);
 
 // ================================================================
 //  SCROLL REVEAL
@@ -462,7 +452,9 @@ function buildHomeSegGrid() {
       <img src="${SEG_IMGS[k]}" alt="${v.name}" class="seg-icon">
       <h3>${v.name}</h3>
       <p>${SEG_DETAIL[k].short}</p>
-      <a href="#" class="btn btn-sm btn-ghost" data-page="register" data-segment="${k}">Register →</a>
+      ${k === "quiz"
+        ? `<a href="#" class="btn btn-sm btn-ghost" data-page="register" data-segment="${k}">Register →</a>`
+        : `<span class="btn btn-sm btn-ghost btn-disabled" aria-disabled="true">Registration Closed</span>`}
     </div>`).join("");
   initCardReveal();
   if (window._bindCursor) window._bindCursor();
@@ -485,7 +477,9 @@ function buildSegDetailGrid() {
           <span class="seg-badge ${v.badge}">${v.badge==="online"?"Online":"Offline"}</span>
           <span class="seg-badge ${v.type==="group"?"group":"solo"}">${v.type==="group"?"Group":"Individual"}</span>
         </div>
-        <a href="#" class="btn btn-primary btn-sm" data-page="register" data-segment="${k}">Register →</a>
+        ${k === "quiz"
+          ? `<a href="#" class="btn btn-primary btn-sm" data-page="register" data-segment="${k}">Register →</a>`
+          : `<span class="btn btn-primary btn-sm btn-disabled" aria-disabled="true">Registration Closed</span>`}
       </div>
     </div>`).join("");
   initCardReveal();
